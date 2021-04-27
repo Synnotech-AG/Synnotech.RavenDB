@@ -28,6 +28,8 @@ Synntech.RavenDB 1.0.0
 - initial release
 - implements Synnotech.DatabaseAbstractions' `ISession` and `IAsyncSession` interfaces for RavenDB.
 - derive your custom sessions from `AsyncReadOnlySession` (for read-only database access) and from `AsyncSession` (for storing documents).
+- easily register `IDocumentStore` and `IAsyncDocumentSession` with your DI container by calling `AddRavenDb`.
+- see all docs at https://github.com/Synnotech-AG/Synnotech.RavenDB
         </PackageReleaseNotes>
     </PropertyGroup>
 
