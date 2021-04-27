@@ -33,7 +33,9 @@ Synntech.RavenDB 1.0.0
 
     <ItemGroup>
         <PackageReference Include="RavenDB.Client" Version="5.0.0" />
+        <PackageReference Include="Light.GuardClauses" Version="9.0.0" />
         <PackageReference Include="Synnotech.DatabaseAbstractions" Version="1.1.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     </ItemGroup>
 
