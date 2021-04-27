@@ -17,6 +17,10 @@ using Raven.Client.Http;
 using Raven.Client.Json.Serialization;
 using Sparrow.Json;
 
+// ReSharper disable InconsistentNaming
+#nullable disable
+#pragma warning disable CS0067
+
 namespace Synnotech.RavenDB.Tests
 {
     public sealed class DocumentSessionMock : IDocumentSession
@@ -269,6 +273,7 @@ namespace Synnotech.RavenDB.Tests
             public string StoreIdentifier => throw new NotSupportedException();
             public bool UseOptimisticConcurrency { get; set; }
             public ISessionBlittableJsonConverter JsonConverter => throw new NotSupportedException();
+
             public event EventHandler<BeforeStoreEventArgs> OnBeforeStore;
             public event EventHandler<AfterSaveChangesEventArgs> OnAfterSaveChanges;
             public event EventHandler<BeforeDeleteEventArgs> OnBeforeDelete;
