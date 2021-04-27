@@ -19,13 +19,49 @@ Synnotech.RavenDB is available as a [NuGet package](https://www.nuget.org/packag
 
 # What does Synnotech.RavenDB offer you?
 
-Synnotech.RavenDB implements the session abstractions of [Synnotech.DatabaseAbstractions](https://github.com/Synnotech-AG/Synnotech.DatabaseAbstractions) for RavenDB 5 or newer. I/O calls should be abstracted so that the calling code can be easily tested without a RavenDB server being necessary. Also, any I/O should be performed asynchronously by default to avoid blocking threads, which is especially important in service apps that might suffer from thread starvation when too many Thread Pool threads are blocked at the same time.
+Synnotech.RavenDB implements the session abstractions of [Synnotech.DatabaseAbstractions](https://github.com/Synnotech-AG/Synnotech.DatabaseAbstractions) for RavenDB 5 or newer. This allows you to simplify your the code in your data access layer. Furthermore, Synnotech.RavenDB provides you with configure your DI container with one call when you want to use the Synnotech default settings for RavenDB.
+
+# Default configuration
+
+Synnotech.RavenDB provides extension methods for `IServiceCollection` to easily get started in e.g. ASP.NET Core apps. Simply call `AddRavenDb` to register an `IDocumentStore` as a singleton and an `IAsyncDocumentSession` as a transient.
+
+In Startup.cs:
+
+```csharp
+public void ConfigureService(IServiceCollection services)
+{
+    // All other services like MVC are left out for brevity's sake 
+    services.AddRavenDb();
+}
+```
+
+The document store is configured using the `IConfiguration` instance that must already be part of the DI container (this is automatically loaded by ASP.NET Core's host builder). Within the configuration, a section called "ravenDb" is searched and deserialized to an instance of `RavenDbSettings`. This settings object can be used to configure the Server URL and database name.
+
+Thus you can configure the settings to access your Raven database via appsettings.json:
+
+```jsonc
+{
+    // other configuration sections are left out for brevity's sake
+    "ravenDB": {
+        "serverUrl": "http://localhost:10001",
+        "databaseName": "MyAwesomeRavenDatabase"
+    }
+}
+```
+
+Additionally, the document conventions of the store are adjusted: the `IdentityPartsSeparator` is set to '-' (default value is '/'). This is done to avoid issues when IDs are part of URLs.
+
+If you don't want to use `AddRavenDb`, you can still use the `SetIdentityPartsSeparator` and `InitializeDocumentStoreFromConfiguration` methods individually in your custom setup.
+
+# Writing custom sessions
+
+For each use case, we usually write custom abstractions that represent the corresponding I/O requests against RavenDB. The following sections show you how to write abstractions, implement them, and call them in client code.
 
 ## Sessions that only read from RavenDB
 
 When writing code that performs I/O with RavenDB, you should create a custom interface that represents each I/O operation with a single method. The following code snippets show the example for an ASP.NET Core controller that represents an HTTP GET operation for contacts:
 
-The I/O abstraction:
+Your I/O abstraction should simply derive from `IDisposable` (or `IAsyncDisposable`) and offer the corresponding I/O call to load contacts:
 
 ```csharp
 public interface IGetContactsSession : IDisposable
