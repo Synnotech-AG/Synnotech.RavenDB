@@ -19,7 +19,7 @@ Synnotech.RavenDB is available as a [NuGet package](https://www.nuget.org/packag
 
 # What does Synnotech.RavenDB offer you?
 
-Synnotech.RavenDB implements the session abstractions of [Synnotech.DatabaseAbstractions](https://github.com/Synnotech-AG/Synnotech.DatabaseAbstractions) for RavenDB 5 or newer. This allows you to simplify your the code in your data access layer. Furthermore, Synnotech.RavenDB provides you with configure your DI container with one call when you want to use the Synnotech default settings for RavenDB.
+Synnotech.RavenDB implements the session abstractions of [Synnotech.DatabaseAbstractions](https://github.com/Synnotech-AG/Synnotech.DatabaseAbstractions) for RavenDB 5 or newer. This allows you to simplify your the code in your data access layer. Furthermore, Synnotech.RavenDB allows you to configure your DI container with one call when you want to use the Synnotech default settings for RavenDB.
 
 # Default configuration
 
