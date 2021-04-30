@@ -31,25 +31,25 @@ namespace Synnotech.RavenDB
         public string DatabaseName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Loads the <see cref="RavenDbSettings"/> from configuration or provides the default instance.
+        /// Loads the <see cref="RavenDbSettings"/> from configuration.
         /// </summary>
         /// <param name="configuration">The configuration instance where the settings are loaded from.</param>
         /// <param name="sectionName">The name of the section that represents the RavenDB settings.</param>
-        /// <returns>The loaded settings, or the default instance when the section cannot be loaded.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="sectionName"/> is an empty string or contains only whitespace.</exception>
+        /// <exception cref="InvalidConfigurationException">Thrown when the settings could not be loaded (most likely because the section is not present in the configuration).</exception>
         public static RavenDbSettings FromConfiguration(IConfiguration configuration, string sectionName = DefaultSectionName) =>
             FromConfiguration<RavenDbSettings>(configuration, sectionName);
 
         /// <summary>
-        /// Loads the RavenDB settings from configuration or provides the default instance.
+        /// Loads the RavenDB settings from configuration.
         /// </summary>
-        /// <typeparam name="T">The subtype of RavenDB settings that will be used to load the settings.</typeparam>
+        /// <typeparam name="T">The type of RavenDB settings that will be used to load the settings.</typeparam>
         /// <param name="configuration">The configuration instance where the settings are loaded from.</param>
         /// <param name="sectionName">The name of the section that represents the RavenDB settings.</param>
-        /// <returns>The loaded settings, or the default instance when the section cannot be loaded.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="sectionName"/> is an empty string or contains only whitespace.</exception>
+        /// <exception cref="InvalidConfigurationException">Thrown when the settings could not be loaded (most likely because the section is not present in the configuration).</exception>
         public static T FromConfiguration<T>(IConfiguration configuration, string sectionName = DefaultSectionName)
         {
             configuration.MustNotBeNull(nameof(configuration));
