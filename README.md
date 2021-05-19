@@ -55,11 +55,11 @@ If you don't want to use `AddRavenDb`, you can still use the `SetIdentityPartsSe
 
 # Writing custom sessions
 
-For each use case, we usually write custom abstractions that represent the corresponding I/O requests against RavenDB. The following sections show you how to write abstractions, implement them, and call them in client code.
+When writing code that performs I/O with RavenDB, we usually write custom abstractions, containing a single method for each I/O request. The following sections show you how to write abstractions, implement them, and call them in client code.
 
 ## Sessions that only read from RavenDB
 
-When writing code that performs I/O with RavenDB, you should create a custom interface that represents each I/O operation with a single method. The following code snippets show the example for an ASP.NET Core controller that represents an HTTP GET operation for contacts:
+, you should create a custom interface that represents each I/O operation with a single method. The following code snippets show the example for an ASP.NET Core controller that represents an HTTP GET operation for contacts:
 
 Your I/O abstraction should simply derive from `IDisposable` (or `IAsyncDisposable`) and offer the corresponding I/O call to load contacts:
 
@@ -70,7 +70,7 @@ public interface IGetContactsSession : IDisposable
 }
 ```
 
-To implement this interface, you should derive from the `AsyncReadOnlySession` interface of Synnotech.RavenDB:
+To implement this interface, you should derive from the `AsyncReadOnlySession` class of Synnotech.RavenDB:
 
 ```csharp
 public sealed class RavenGetContactsSession : AsyncReadOnlySession, IGetContactsSession
@@ -87,6 +87,8 @@ public sealed class RavenGetContactsSession : AsyncReadOnlySession, IGetContacts
 ```
 
 `AsyncReadOnlySession` implements `IDisposable` and `IAsyncDisposable` for you and provides RavenDB's `IAsyncDocumentSession` via the protected `Session` property. This reduces the code that you need to write in your session for your specific use case.
+
+You can then consume your session via the abstraction in client code. Check out the following ASP.NET Core controller for example:
 
 ```csharp
 [ApiController]
@@ -111,9 +113,9 @@ public sealed class GetContactsController : ControllerBase
 }
 ```
 
-In this example, a `Func<IGetContactsSession` is injected into the controller. This factory delegate is used to instantiate the session once the parameters are validated. We recommend that you do not register your session as "scoped", but rather as transient with your DI container (because it's the controllers responsibility to properly open and close the session). This allows you to test if the session is disposed correctly without setting up the whole ASP.NET Core ecosystem to instantiate the controller.
+In this example, a `Func<IGetContactsSession>` is injected into the controller. This factory delegate is used to instantiate the session once the parameters are validated. We recommend that you do not register your session as "scoped", but rather as transient with your DI container (because it's the controllers responsibility to properly open and close the session). This allows you to test if the session is disposed correctly without setting up the whole ASP.NET Core ecosystem to instantiate the controller.
 
-For this to work, we suggest that you use a DI container like [LightInject](https://github.com/seesharper/LightInject) that automatically provides you with [function factories](https://www.lightinject.net/#function-factories) once you have registered a type.
++
 
 ## Sessions that manipulate data
 
