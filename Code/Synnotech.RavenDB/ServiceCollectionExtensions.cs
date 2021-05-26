@@ -20,12 +20,23 @@ namespace Synnotech.RavenDB
         /// The document conventions of the store are adjusted so that the
         /// <see cref="DocumentConventions.IdentityPartsSeparator" /> is set to '-' (to prevent issues with URLs).
         /// </summary>
+        /// <param name="services">The service collection used to register types with the DI container.</param>
+        /// <param name="configurationSectionName">
+        /// The name of the configuration section that holds the settings values for <see cref="RavenDbSettings" /> (optional).
+        /// The default value is "ravenDb".
+        /// </param>
+        /// <param name="sessionLifetime">
+        /// The lifetime that is used to register RavenDB's <see cref="IAsyncDocumentSession"/> with the DI container (optional).
+        /// The default value is <see cref="ServiceLifetime.Transient"/>.
+        /// </param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="services" /> is null.</exception>
-        public static IServiceCollection AddRavenDb(this IServiceCollection services, ServiceLifetime sessionLifetime = ServiceLifetime.Transient)
+        public static IServiceCollection AddRavenDb(this IServiceCollection services,
+                                                    string configurationSectionName = RavenDbSettings.DefaultSectionName,
+                                                    ServiceLifetime sessionLifetime = ServiceLifetime.Transient)
         {
             services.MustNotBeNull(nameof(services));
 
-            services.AddSingleton(container => InitializeDocumentStoreFromConfiguration(container.GetRequiredService<IConfiguration>()))
+            services.AddSingleton(container => InitializeDocumentStoreFromConfiguration(container.GetRequiredService<IConfiguration>(), configurationSectionName))
                     .Add(new ServiceDescriptor(
                              typeof(IAsyncDocumentSession),
                              container => container.GetRequiredService<IDocumentStore>().OpenAsyncSession(),
@@ -40,11 +51,15 @@ namespace Synnotech.RavenDB
         /// <see cref="DocumentConventions.IdentityPartsSeparator" /> is set to '-' (to prevent issues with URLs).
         /// </summary>
         /// <param name="configuration">The configuration where the RavenDB settings are loaded from.</param>
+        /// <param name="configurationSectionName">
+        /// The name of the configuration section that holds the settings values for <see cref="RavenDbSettings" /> (optional).
+        /// The default value is "ravenDb".
+        /// </param>
         /// <returns>The initialized RavenDB document store</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration" /> is null.</exception>
-        public static IDocumentStore InitializeDocumentStoreFromConfiguration(IConfiguration configuration)
+        public static IDocumentStore InitializeDocumentStoreFromConfiguration(IConfiguration configuration, string configurationSectionName = RavenDbSettings.DefaultSectionName)
         {
-            var ravenDbSettings = RavenDbSettings.FromConfiguration(configuration);
+            var ravenDbSettings = RavenDbSettings.FromConfiguration(configuration, configurationSectionName);
             return new DocumentStore
             {
                 Urls = new[] { ravenDbSettings.ServerUrl },
