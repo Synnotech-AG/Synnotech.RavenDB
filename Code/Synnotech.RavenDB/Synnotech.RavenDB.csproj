@@ -5,7 +5,7 @@
         <Authors>Synnotech AG</Authors>
         <Company>Synnotech AG</Company>
         <Copyright>Copyright © Synnotech AG 2021</Copyright>
-        <Version>1.0.0</Version>
+        <Version>2.0.0</Version>
         <Description>Extensions for RavenDB that make your data access code easier.</Description>
         <LangVersion>9.0</LangVersion>
         <Nullable>enable</Nullable>
@@ -22,13 +22,10 @@
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReleaseNotes>
-Synntech.RavenDB 1.0.0
+Synntech.RavenDB 2.0.0
 --------------------------------
 
-- initial release
-- implements Synnotech.DatabaseAbstractions' `ISession` and `IAsyncSession` interfaces for RavenDB.
-- derive your custom sessions from `AsyncReadOnlySession` (for read-only database access) and from `AsyncSession` (for storing documents).
-- easily register `IDocumentStore` and `IAsyncDocumentSession` with your DI container by calling `AddRavenDb`.
+- added support for Cancellation Tokens to AsyncSession
 - see all docs at https://github.com/Synnotech-AG/Synnotech.RavenDB
         </PackageReleaseNotes>
     </PropertyGroup>
