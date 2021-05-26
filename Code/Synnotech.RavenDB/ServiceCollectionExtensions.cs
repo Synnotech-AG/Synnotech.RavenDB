@@ -14,25 +14,30 @@ namespace Synnotech.RavenDB
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Registers <see cref="IDocumentStore"/> as a singleton and <see cref="IAsyncDocumentSession"/> as a transient
+        /// Registers <see cref="IDocumentStore" /> as a singleton and <see cref="IAsyncDocumentSession" /> as a transient
         /// service. The document store is configured via <see cref="RavenDbSettings" /> that
-        /// are retrieved from the <see cref="IConfiguration"/> instance (which should already be registered with the DI container).
+        /// are retrieved from the <see cref="IConfiguration" /> instance (which should already be registered with the DI container).
         /// The document conventions of the store are adjusted so that the
-        /// <see cref="DocumentConventions.IdentityPartsSeparator"/> is set to '-' (to prevent issues with URLs).
+        /// <see cref="DocumentConventions.IdentityPartsSeparator" /> is set to '-' (to prevent issues with URLs).
         /// </summary>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is null.</exception>
-        public static IServiceCollection AddRavenDb(this IServiceCollection services)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="services" /> is null.</exception>
+        public static IServiceCollection AddRavenDb(this IServiceCollection services, ServiceLifetime sessionLifetime = ServiceLifetime.Transient)
         {
             services.MustNotBeNull(nameof(services));
 
-            return services.AddSingleton(container => InitializeDocumentStoreFromConfiguration(container.GetRequiredService<IConfiguration>()))
-                           .AddTransient(container => container.GetRequiredService<IDocumentStore>().OpenAsyncSession());
+            services.AddSingleton(container => InitializeDocumentStoreFromConfiguration(container.GetRequiredService<IConfiguration>()))
+                    .Add(new ServiceDescriptor(
+                             typeof(IAsyncDocumentSession),
+                             container => container.GetRequiredService<IDocumentStore>().OpenAsyncSession(),
+                             sessionLifetime
+                         ));
+            return services;
         }
 
         /// <summary>
         /// Initializes the RavenDB document store. The settings for the store will be retrieved from the <paramref name="configuration" />
         /// instance using the default <see cref="RavenDbSettings" />. The document conventions of the store are adjusted so that the
-        /// <see cref="DocumentConventions.IdentityPartsSeparator"/> is set to '-' (to prevent issues with URLs).
+        /// <see cref="DocumentConventions.IdentityPartsSeparator" /> is set to '-' (to prevent issues with URLs).
         /// </summary>
         /// <param name="configuration">The configuration where the RavenDB settings are loaded from.</param>
         /// <returns>The initialized RavenDB document store</returns>
@@ -49,12 +54,12 @@ namespace Synnotech.RavenDB
         }
 
         /// <summary>
-        /// Sets the <paramref name="identityPartsSeparator"/> on the specified document conventions. We recommend you use '-'
+        /// Sets the <paramref name="identityPartsSeparator" /> on the specified document conventions. We recommend you use '-'
         /// as the separator, as the default separator '/' might collide with URLs in web apps.
         /// </summary>
         /// <param name="documentConventions">The document conventions that will be manipulated.</param>
         /// <param name="identityPartsSeparator">The character that should be used to separate the different parts of a RavenDB ID (optional). The default value is '-'.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="documentConventions"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="documentConventions" /> is null.</exception>
         public static DocumentConventions SetIdentityPartsSeparator(this DocumentConventions documentConventions, char identityPartsSeparator = '-')
         {
             documentConventions.MustNotBeNull(nameof(documentConventions));
