@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Raven.Client.Documents.Session;
 using Synnotech.DatabaseAbstractions;
@@ -32,6 +33,7 @@ namespace Synnotech.RavenDB
         /// <summary>
         /// Saves all pending changes to the server.
         /// </summary>
-        public Task SaveChangesAsync() => Session.SaveChangesAsync();
+        /// <param name="token">The token to cancel this asynchronous operation (optional).</param>
+        public Task SaveChangesAsync(CancellationToken token = default) => Session.SaveChangesAsync(token);
     }
 }
