@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using FluentAssertions;
 using Raven.Client.Documents.Session;
+using Synnotech.DatabaseAbstractions;
 using Xunit;
 
 namespace Synnotech.RavenDB.Tests
@@ -20,11 +20,7 @@ namespace Synnotech.RavenDB.Tests
 
         [Fact]
         public static void MustImplementIDisposable() =>
-            typeof(AsyncReadOnlySession).Should().Implement<IDisposable>();
-
-        [Fact]
-        public static void MustImplementIAsyncDisposable() =>
-            typeof(AsyncReadOnlySession).Should().Implement<IAsyncDisposable>();
+            typeof(AsyncReadOnlySession).Should().Implement<IAsyncReadOnlySession>();
 
         [Fact]
         public void SessionMustBeRetrievable() =>
