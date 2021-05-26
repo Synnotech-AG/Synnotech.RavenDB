@@ -5,7 +5,7 @@
 [![Synnotech Logo](synnotech-large-logo.png)](https://www.synnotech.de/)
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/Synnotech-AG/Synnotech.RavenDB/blob/main/LICENSE)
-[![NuGet](https://img.shields.io/badge/NuGet-1.0.0-blue.svg?style=for-the-badge)](https://www.nuget.org/packages/Synnotech.RavenDB/)
+[![NuGet](https://img.shields.io/badge/NuGet-2.0.0-blue.svg?style=for-the-badge)](https://www.nuget.org/packages/Synnotech.RavenDB/)
 
 # How to Install
 
@@ -13,7 +13,7 @@ Synnotech.RavenDB is compiled against [.NET Standard 2.0 and 2.1](https://docs.m
 
 Synnotech.RavenDB is available as a [NuGet package](https://www.nuget.org/packages/Synnotech.RavenDB/) and can be installed via:
 
-- **Package Reference in csproj**: `<PackageReference Include="Synnotech.RavenDB" Version="1.0.0" />`
+- **Package Reference in csproj**: `<PackageReference Include="Synnotech.RavenDB" Version="2.0.0" />`
 - **dotnet CLI**: `dotnet add package Synnotech.RavenDB`
 - **Visual Studio Package Manager Console**: `Install-Package Synnotech.RavenDB`
 
@@ -23,7 +23,7 @@ Synnotech.RavenDB implements the session abstractions of [Synnotech.DatabaseAbst
 
 # Default configuration
 
-Synnotech.RavenDB provides extension methods for `IServiceCollection` to easily get started in e.g. ASP.NET Core apps. Simply call `AddRavenDb` to register an `IDocumentStore` as a singleton and an `IAsyncDocumentSession` as a transient.
+Synnotech.RavenDB provides extension methods for `IServiceCollection` to easily get started in e.g. ASP.NET Core apps. Simply call `AddRavenDb` to register an `IDocumentStore` as a singleton and an `IAsyncDocumentSession` as a transient (you can change the lifetime of the session via the optional `sessionLifetime` argument).
 
 In Startup.cs:
 
@@ -35,7 +35,7 @@ public void ConfigureService(IServiceCollection services)
 }
 ```
 
-The document store is configured using the `IConfiguration` instance that must already be part of the DI container (this is automatically loaded by ASP.NET Core's host builder). Within the configuration, a section called "ravenDb" is searched and deserialized to an instance of `RavenDbSettings`. This settings object can be used to configure the Server URL and database name.
+The document store is configured using the `IConfiguration` instance that must already be part of the DI container (it is automatically loaded by ASP.NET Core's host builder). Within the configuration, a section called "ravenDb" is searched and deserialized to an instance of `RavenDbSettings` (the section name can be configured with the optional `configurationSectionName` argument of `AddRavenDb`). The settings object can be used to configure the Server URLs and database name.
 
 Thus you can configure the settings to access your Raven database via appsettings.json:
 
@@ -43,15 +43,15 @@ Thus you can configure the settings to access your Raven database via appsetting
 {
     // other configuration sections are left out for brevity's sake
     "ravenDB": {
-        "serverUrl": "http://localhost:10001",
+        "serverUrls": [ "http://localhost:10001" ],
         "databaseName": "MyAwesomeRavenDatabase"
     }
 }
 ```
 
-Additionally, the document conventions of the store are adjusted: the `IdentityPartsSeparator` is set to '-' (default value is '/'). This is done to avoid issues when IDs are part of URLs.
+Additionally, the document conventions of the store are adjusted: the `IdentityPartsSeparator` is set to '-' (default value is '/'). This is done to avoid issues when IDs are part of URLs. You can configure it with the optional `identityPartsSeparator` argument of `AddRavenDb`.
 
-If you don't want to use `AddRavenDb`, you can still use the `SetIdentityPartsSeparator` and `InitializeDocumentStoreFromConfiguration` methods individually in your custom setup.
+If you don't want to use `AddRavenDb`, you can still use the [RavenDbSettings](https://github.com/Synnotech-AG/Synnotech.RavenDB/blob/main/Code/Synnotech.RavenDB/RavenDbSettings.cs) class and the `SetIdentityPartsSeparator` and `InitializeDocumentStoreFromConfiguration` methods of [ServiceCollectionExtensions](https://github.com/Synnotech-AG/Synnotech.RavenDB/blob/main/Code/Synnotech.RavenDB/ServiceCollectionExtensions.cs) individually in your custom setup.
 
 # Writing custom sessions
 
@@ -59,12 +59,12 @@ When writing code that performs I/O with RavenDB, we usually write custom abstra
 
 ## Sessions that only read from RavenDB
 
-, you should create a custom interface that represents each I/O operation with a single method. The following code snippets show the example for an ASP.NET Core controller that represents an HTTP GET operation for contacts:
+The following code snippets show the example for an ASP.NET Core controller that represents an HTTP GET operation for contacts:
 
-Your I/O abstraction should simply derive from `IDisposable` (or `IAsyncDisposable`) and offer the corresponding I/O call to load contacts:
+Your I/O abstraction should simply derive from Synnotech.DatabaseAbstractions' `IAsyncReadOnlySession` and offer the corresponding I/O call to load contacts:
 
 ```csharp
-public interface IGetContactsSession : IDisposable
+public interface IGetContactsSession : IAsyncReadOnlySession
 {
     Task<List<Contact>> GetContactsAsync(int skip, int take);
 }
@@ -86,7 +86,7 @@ public sealed class RavenGetContactsSession : AsyncReadOnlySession, IGetContacts
 }
 ```
 
-`AsyncReadOnlySession` implements `IDisposable` and `IAsyncDisposable` for you and provides RavenDB's `IAsyncDocumentSession` via the protected `Session` property. This reduces the code that you need to write in your session for your specific use case.
+`AsyncReadOnlySession` implements `IAsyncReadOnlySession`, `IDisposable` and `IAsyncDisposable` for you and provides RavenDB's `IAsyncDocumentSession` via the protected `Session` property. This reduces the code that you need to write in your session for your specific use case.
 
 You can then consume your session via the abstraction in client code. Check out the following ASP.NET Core controller for example:
 
@@ -106,20 +106,25 @@ public sealed class GetContactsController : ControllerBase
         if (this.CheckPagingParametersForErrors(skip, take, out var badResult))
             return badResult;
         
-        using var session = CreateSession();
+        await using var session = CreateSession();
         var contacts = await session.GetContactsAsync(skip, take);
         return ContactDto.FromContacts(contacts);
     }
 }
 ```
 
-In this example, a `Func<IGetContactsSession>` is injected into the controller. This factory delegate is used to instantiate the session once the parameters are validated. We recommend that you do not register your session as "scoped", but rather as transient with your DI container (because it's the controllers responsibility to properly open and close the session). This allows you to test if the session is disposed correctly without setting up the whole ASP.NET Core ecosystem to instantiate the controller.
+In this example, a `Func<IGetContactsSession>` is injected into the controller. This factory delegate is used to instantiate the session once the parameters are validated. We recommend that you do not register your session as "scoped", but rather as transient with your DI container (because it's the controllers responsibility to properly open and close the session). This allows you to test if the session is disposed correctly without setting up the whole ASP.NET Core ecosystem to instantiate the controller. You can inject a `Func<IGetContactsSession>` if you use a proper DI container like [LightInject](https://github.com/seesharper/LightInject) that supports [Function Factories](https://www.lightinject.net/#function-factories), or if you explicitly register it as a singleton:
 
-+
+```csharp
+services.AddTransient<IGetContactsSession, RavenGetContactsSession>();
+// The next call is not necessary if your DI container can automatically resolve
+// Func<T> where T is already registered. LightInject is able to do this.
+services.AddSingleton<Func<IGetContactsSession>>(container => container.GetRequiredService<IGetContactsSession>);
+```
 
 ## Sessions that manipulate data
 
-If your session requires the `SaveChangesAsync` method, you should derive from `Synnotech.DatabaseAbstractions.IAsyncSession`.
+If your session requires the `SaveChangesAsync` method, you should derive from `Synnotech.DatabaseAbstractions.IAsyncSession`. `AsyncSession` implements this interface for you. `AsyncSession` also supports aborting async opertions via `CancellationToken`.
 
 ### Example for updating an existing document
 
@@ -165,7 +170,7 @@ public sealed class UpdateContactController : ControllerBase
         if (this.CheckForErrors(contactDto, Validator, out var badResult))
             return badResult;
             
-        using var session = CreateSession();
+        await using var session = CreateSession();
         var contact = await session.GetContactAsync(contactDto.Id);
         if (contact == null)
             return NotFound();
@@ -223,7 +228,7 @@ public sealed class CreateContactController : ControllerBase
         if (this.CheckForErrors(newContactDto, Validator, out var badResult)
             return badResult;
         
-        using var session = CreateSession();
+        await using var session = CreateSession();
         var newContact = newContactDto.ConvertToContact(); // Or use an object-to-object mapper
         await session.AddContactAsync(newContact);
         await session.SaveChangesAsync();
@@ -237,6 +242,34 @@ Again, the access to the session is provided via a factory delegate. Once the pa
 # General recommendations
 
 1. All I/O should be abstracted. You should create abstractions that are specific for your use cases.
-2. Your custom abstractions should derive from `IDisposable` (when they only read data from RavenDB) or from `IAsyncSession` (when they also manipulate data).
+2. Your custom abstractions should derive from `IAsyncReadOnlySession` (when they only read data from RavenDB) or from `IAsyncSession` (when they also manipulate data). Use `AsyncReadOnlySession` and `AsyncSession` as base classes to implement those abstractions.
 3. Prefer async I/O over sync I/O. Threads that wait for a database query to complete can handle other requests in the meantime when the query is performed asynchronously. This prevents thread starvation under high load and allows your web service to scale better. If you really decide to use synchronous access to RavenDB, there are the `ReadOnlySession` and `Session` base classes that you can use to implement abstractions. You must register the store and document session on your own against the DI container in this case.
-4. In case of web apps, we do not recommend using the DI container to dispose of the session. Instead, it is the controller's responsibility to do that. This way you can easily test the controller without running the whole ASP.NET Core infrastructure in your tests. To make your life easier, use an appropriate DI container like [LightInject](https://github.com/seesharper/LightInject) that provides more functionality like [Function Factories](https://www.lightinject.net/#function-factories) instead of Microsoft.Extensions.DependencyInjection.
+4. In case of web apps, we do not recommend using the DI container to dispose of the session. Instead, it is the controller's responsibility to do that. This way you can easily test the controller without running the whole ASP.NET Core infrastructure in your tests. To make your life easier, use an appropriate DI container like [LightInject](https://github.com/seesharper/LightInject) instead of Microsoft.Extensions.DependencyInjection. These more sophisticated DI containers provide you with more features, e.g. [Function Factories](https://www.lightinject.net/#function-factories).
+
+# Migration Guides
+
+## From 1.0.0 to 2.0.0
+
+### 1. Breaking change: RavenDbSettings.ServerUrls
+
+The former `string ServerUrl` property is now `List<string> ServerUrls`. This means that you need to adjust your appsettings.json:
+
+```jsonc
+{
+    "ravenDB": {
+        // serverURLs with an 's', you must provide a JSON array now
+        "serverUrls": [ "http://localhost:10001" ], 
+        "databaseName": "MyAwesomeRavenDatabase"
+    }
+}
+```
+
+Furthermore, the default server URL is no longer localhost:10001, but an empty list of server URLs. This was done to support connections to a cluster of RavenDB servers.
+
+### 2. Breaking changes that require recompilation
+
+The following changes require recompilation. The surface areas of the APIs were either extended or stayed the same.
+
+- `AsyncReadOnlySession` now directly implements `IAsyncReadOnlySession` instead of `IAsyncDisposable` and `IDisposable`
+- `AsyncSession` now supports an optional cancellation token on `SaveChangesAsync`.
+- more optional parameters in `AddRavenDb` and `InitializeDocumentStoreFromConfiguration`.
