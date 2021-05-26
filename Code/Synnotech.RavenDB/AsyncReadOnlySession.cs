@@ -34,7 +34,7 @@ namespace Synnotech.RavenDB
         public ValueTask DisposeAsync()
         {
             Session.Dispose();
-            return new ValueTask(Task.CompletedTask);
+            return default;
         }
 
         /// <summary>
