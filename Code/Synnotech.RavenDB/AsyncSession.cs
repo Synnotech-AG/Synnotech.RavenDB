@@ -33,7 +33,7 @@ namespace Synnotech.RavenDB
         /// <summary>
         /// Saves all pending changes to the server.
         /// </summary>
-        /// <param name="token">The token to cancel this asynchronous operation (optional).</param>
-        public Task SaveChangesAsync(CancellationToken token = default) => Session.SaveChangesAsync(token);
+        /// <param name="cancellationToken">The token to cancel this asynchronous operation (optional).</param>
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default) => Session.SaveChangesAsync(cancellationToken);
     }
 }
