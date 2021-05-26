@@ -62,7 +62,7 @@ namespace Synnotech.RavenDB
             var ravenDbSettings = RavenDbSettings.FromConfiguration(configuration, configurationSectionName);
             return new DocumentStore
             {
-                Urls = new[] { ravenDbSettings.ServerUrl },
+                Urls = ravenDbSettings.ServerUrls.ToArray(),
                 Database = ravenDbSettings.DatabaseName,
                 Conventions = new DocumentConventions().SetIdentityPartsSeparator()
             }.Initialize();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Light.GuardClauses;
 using Light.GuardClauses.Exceptions;
 using Microsoft.Extensions.Configuration;
@@ -16,14 +17,9 @@ namespace Synnotech.RavenDB
         public const string DefaultSectionName = "ravenDb";
 
         /// <summary>
-        /// The default RavenDB server URL that is assigned to <see cref="ServerUrl"/>.
-        /// </summary>
-        public const string DefaultServerUrl = "http://localhost:10001";
-
-        /// <summary>
         /// Gets or sets the URL to the target RavenDB server.
         /// </summary>
-        public string ServerUrl { get; set; } = DefaultServerUrl;
+        public List<string> ServerUrls { get; set; } = new ();
 
         /// <summary>
         /// Gets or sets the name of the target database.

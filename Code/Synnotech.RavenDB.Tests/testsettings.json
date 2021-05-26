@@ -1,7 +1,7 @@
 {
     "runDatabaseIntegrationTests": false, 
     "ravenDb": {
-        "serverUrl": "http://localhost:10001",
+        "serverUrls": [ "http://localhost:10001" ],
         "databaseName": "Synnotech.RavenDB.IntegrationTest"
     }
 }

@@ -20,14 +20,14 @@ namespace Synnotech.RavenDB.Tests
         private ITestOutputHelper Output { get; }
 
         [Theory]
-        [InlineData(RavenDbSettings.DefaultSectionName, RavenDbSettings.DefaultServerUrl, "My-Database")]
+        [InlineData(RavenDbSettings.DefaultSectionName, "http://localhost:10001", "My-Database")]
         [InlineData("someOtherSection", "http://localhost:8000", "TheDatabase")]
         public static void LoadDefaultConfiguration(string sectionName, string serverUrl, string databaseName)
         {
             var configuration = CreateConfiguration(sectionName, serverUrl, databaseName);
             var ravenDbSettings = RavenDbSettings.FromConfiguration(configuration, sectionName);
 
-            var expectedSettings = new RavenDbSettings { ServerUrl = serverUrl, DatabaseName = databaseName };
+            var expectedSettings = new RavenDbSettings { ServerUrls = new List<string> { serverUrl }, DatabaseName = databaseName };
             ravenDbSettings.Should().BeEquivalentTo(expectedSettings);
         }
 
@@ -40,7 +40,7 @@ namespace Synnotech.RavenDB.Tests
 
             var customSettings = RavenDbSettings.FromConfiguration<CustomRavenDbSettings>(configuration, sectionName);
 
-            var expectedSettings = new CustomRavenDbSettings { ServerUrl = serverUrl, DatabaseName = databaseName, OtherValue = otherValue };
+            var expectedSettings = new CustomRavenDbSettings { ServerUrls = new List<string> { serverUrl }, DatabaseName = databaseName, OtherValue = otherValue };
             customSettings.Should().BeEquivalentTo(expectedSettings);
         }
 
@@ -83,7 +83,7 @@ namespace Synnotech.RavenDB.Tests
         }
 
         private static IConfiguration CreateConfiguration(string sectionName = RavenDbSettings.DefaultSectionName,
-                                                          string serverUrl = RavenDbSettings.DefaultServerUrl,
+                                                          string serverUrl = "http//localhost:10001",
                                                           string databaseName = "My-Database",
                                                           params KeyValuePair<string, string>[] customSettings)
         {
@@ -91,7 +91,7 @@ namespace Synnotech.RavenDB.Tests
                   .AddInMemoryCollection(
                        new[]
                        {
-                           new KeyValuePair<string, string>($"{sectionName}:serverUrl", serverUrl),
+                           new KeyValuePair<string, string>($"{sectionName}:serverUrls:0", serverUrl),
                            new KeyValuePair<string, string>($"{sectionName}:databaseName", databaseName)
                        }.Concat(customSettings)
                    )
