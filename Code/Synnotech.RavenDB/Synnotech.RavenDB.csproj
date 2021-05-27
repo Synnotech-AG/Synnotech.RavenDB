@@ -26,6 +26,7 @@ Synntech.RavenDB 2.0.0
 --------------------------------
 
 - added support for Cancellation Tokens to AsyncSession
+- implements Synntoch.DatabaseAbstractions 2.0.0
 - see all docs at https://github.com/Synnotech-AG/Synnotech.RavenDB
         </PackageReleaseNotes>
     </PropertyGroup>
