@@ -5,7 +5,7 @@
 [![Synnotech Logo](synnotech-large-logo.png)](https://www.synnotech.de/)
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://github.com/Synnotech-AG/Synnotech.RavenDB/blob/main/LICENSE)
-[![NuGet](https://img.shields.io/badge/NuGet-2.0.0-blue.svg?style=for-the-badge)](https://www.nuget.org/packages/Synnotech.RavenDB/)
+[![NuGet](https://img.shields.io/badge/NuGet-3.0.0-blue.svg?style=for-the-badge)](https://www.nuget.org/packages/Synnotech.RavenDB/)
 
 # How to Install
 
@@ -13,7 +13,7 @@ Synnotech.RavenDB is compiled against [.NET Standard 2.0 and 2.1](https://docs.m
 
 Synnotech.RavenDB is available as a [NuGet package](https://www.nuget.org/packages/Synnotech.RavenDB/) and can be installed via:
 
-- **Package Reference in csproj**: `<PackageReference Include="Synnotech.RavenDB" Version="2.0.0" />`
+- **Package Reference in csproj**: `<PackageReference Include="Synnotech.RavenDB" Version="3.0.0" />`
 - **dotnet CLI**: `dotnet add package Synnotech.RavenDB`
 - **Visual Studio Package Manager Console**: `Install-Package Synnotech.RavenDB`
 
@@ -273,3 +273,7 @@ The following changes require recompilation. The surface areas of the APIs were 
 - `AsyncReadOnlySession` now directly implements `IAsyncReadOnlySession` instead of `IAsyncDisposable` and `IDisposable`
 - `AsyncSession` now supports an optional cancellation token on `SaveChangesAsync`.
 - more optional parameters in `AddRavenDb` and `InitializeDocumentStoreFromConfiguration`.
+
+## From 2.0.0 to 3.0.0
+
+Synnotech.RavenDB now references Synnotech.DatabaseAbstractions 3.0.0, thus you need to recompile. There are no breaking changes in the API.
